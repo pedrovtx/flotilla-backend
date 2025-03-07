@@ -3,14 +3,11 @@ from flask_cors import CORS
 import sqlite3
 
 app = Flask(__name__)
-CORS(app, resources={r"/api/*": {"origins": "http://localhost:3000"}})
-def get_db():
-    conn = sqlite3.connect('camiones.db')  # Cambia aquí
-    conn.row_factory = sqlite3.Row
-    return conn
+CORS(app, resources={r"/api/*": {"origins": 
+"http://localhost:3000"}})
 
 def get_db():
-    conn = sqlite3.connect('flotilla.db')
+    conn = sqlite3.connect('camiones.db')
     conn.row_factory = sqlite3.Row
     return conn
 
@@ -34,24 +31,33 @@ def get_camiones():
 @app.route('/api/camiones', methods=['POST'])
 def add_camion():
     data = request.json
-    required_fields = ['año', 'marca', 'modelo', 'vin', 'placa', 'dueño']
+    required_fields = ['año', 'marca', 'modelo', 'vin', 'placa', 
+'dueño']
     if not all(data.get(field) for field in required_fields):
-        return jsonify({"message": "Todos los campos son obligatorios"}), 400
+        return jsonify({"message": "Todos los campos son 
+obligatorios"}), 400
     with get_db() as conn:
-        existing = conn.execute('SELECT * FROM camiones WHERE placa = ? OR vin = ?',
-                                (data['placa'], data['vin'])).fetchone()
+        existing = conn.execute('SELECT * FROM camiones WHERE placa 
+= ? OR vin = ?',
+                                (data['placa'], 
+data['vin'])).fetchone()
         if existing:
-            return jsonify({"message": "La placa o VIN ya existe"}), 409
-        cursor = conn.execute('INSERT INTO camiones (año, marca, modelo, vin, placa, dueño) VALUES (?, ?, ?, ?, ?, ?)',
-                              (data['año'], data['marca'], data['modelo'], data['vin'], data['placa'], data['dueño']))
+            return jsonify({"message": "La placa o VIN ya existe"}), 
+409
+        cursor = conn.execute('INSERT INTO camiones (año, marca, 
+modelo, vin, placa, dueño) VALUES (?, ?, ?, ?, ?, ?)',
+                              (data['año'], data['marca'], 
+data['modelo'], data['vin'], data['placa'], data['dueño']))
         conn.commit()
         data['id'] = cursor.lastrowid
-    return jsonify({"message": "Camión agregado", "camion": data}), 201
+    return jsonify({"message": "Camión agregado", "camion": data}), 
+201
 
 @app.route('/api/camiones/<int:id>', methods=['DELETE'])
 def delete_camion(id):
     with get_db() as conn:
-        cursor = conn.execute('DELETE FROM camiones WHERE id = ?', (id,))
+        cursor = conn.execute('DELETE FROM camiones WHERE id = ?', 
+(id,))
         conn.commit()
         if cursor.rowcount == 0:
             return jsonify({"message": "Camión no encontrado"}), 404
@@ -60,20 +66,28 @@ def delete_camion(id):
 @app.route('/api/camiones/<int:id>', methods=['PUT'])
 def update_camion(id):
     data = request.json
-    required_fields = ['año', 'marca', 'modelo', 'vin', 'placa', 'dueño']
+    required_fields = ['año', 'marca', 'modelo', 'vin', 'placa', 
+'dueño']
     if not all(data.get(field) for field in required_fields):
-        return jsonify({"message": "Todos los campos son obligatorios"}), 400
+        return jsonify({"message": "Todos los campos son 
+obligatorios"}), 400
     with get_db() as conn:
-        existing = conn.execute('SELECT * FROM camiones WHERE (placa = ? OR vin = ?) AND id != ?',
-                                (data['placa'], data['vin'], id)).fetchone()
+        existing = conn.execute('SELECT * FROM camiones WHERE (placa 
+= ? OR vin = ?) AND id != ?',
+                                (data['placa'], data['vin'], 
+id)).fetchone()
         if existing:
-            return jsonify({"message": "La placa o VIN ya existe"}), 409
-        cursor = conn.execute('UPDATE camiones SET año = ?, marca = ?, modelo = ?, vin = ?, placa = ?, dueño = ? WHERE id = ?',
-                              (data['año'], data['marca'], data['modelo'], data['vin'], data['placa'], data['dueño'], id))
+            return jsonify({"message": "La placa o VIN ya existe"}), 
+409
+        cursor = conn.execute('UPDATE camiones SET año = ?, marca = 
+?, modelo = ?, vin = ?, placa = ?, dueño = ? WHERE id = ?',
+                              (data['año'], data['marca'], 
+data['modelo'], data['vin'], data['placa'], data['dueño'], id))
         conn.commit()
         if cursor.rowcount == 0:
             return jsonify({"message": "Camión no encontrado"}), 404
-        return jsonify({"message": "Camión actualizado", "camion": {**data, "id": id}}), 200
+        return jsonify({"message": "Camión actualizado", "camion": 
+{**data, "id": id}}), 200
 
 if __name__ == '__main__':
     app.run(debug=True)
