@@ -4,6 +4,10 @@ import sqlite3
 
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "http://localhost:3000"}})
+def get_db():
+    conn = sqlite3.connect('camiones.db')  # Cambia aquí
+    conn.row_factory = sqlite3.Row
+    return conn
 
 def get_db():
     conn = sqlite3.connect('flotilla.db')
