@@ -33,7 +33,6 @@ def add_camion():
     data = request.json
     required_fields = ['año', 'marca', 'modelo', 'vin', 'placa', 
 'dueño']
-if not all(data.get(field) for field in required_fields):
     return jsonify({"message": "Todos los campos son obligatorios"}), 400
     with get_db() as conn:
         existing = conn.execute('SELECT * FROM camiones WHERE placa 
